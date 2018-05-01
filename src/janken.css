@@ -1,0 +1,18 @@
+button {
+  font-size: 120%;
+  display: inline-block;
+  margin: 1rem;
+  padding: 0.5rem 1rem;
+  background: #fff;
+  color: #333;
+  border: solid 1px #333;
+  border-radius: 0.1rem;
+}
+
+#janken_field .hand {
+  font-weight: 600;
+}
+
+#janken_field .result {
+  color: #900;
+}
