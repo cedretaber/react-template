@@ -62,26 +62,30 @@ let reducer = (action, _state) =>
 
 let initialState = () => Wait;
 
-let component = ReasonReact.reducerComponent("Janken");
+let component =
+  ReasonReact.reducerComponent("Janken");
 
 let t = str => ReasonReact.string(str);
+
+let make_button = (hand, send) =>
+  <button _type="button" onClick=(_e => send(Play(hand)))>
+    (t(Hand.to_string(hand)))
+  </button>;
 
 let make = (_children) => {
   ...component,
   reducer,
   initialState,
   render: ({state, send}) => {
-    let make_button = hand =>
-      <button _type="button" onClick=(_e => send(Play(hand)))>(t(Hand.to_string(hand)))</button>;
     let body =
       switch state {
       | Wait =>
           <div>
             <p>(t({js|じゃんけんゲームをします。|js}))</p>
             <p>(t({js|好きな手を選んでください。|js}))</p>
-            (make_button(Hand.Rock))
-            (make_button(Hand.Scissors))
-            (make_button(Hand.Paper))
+            (make_button(Hand.Rock, send))
+            (make_button(Hand.Scissors, send))
+            (make_button(Hand.Paper, send))
           </div>
       | Result(player, enemy) =>
           let message =
