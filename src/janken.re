@@ -32,23 +32,26 @@ type state
   = Wait
   | Result(Hand.t, Hand.t);
 
-type result =
-  | Victory
-  | Defeated
-  | Draw;
+module Result {
+  type t
+    = Victory
+    | Defeated
+    | Draw;
 
-let show_result_message = (player, enemy) => {
-  Hand.(
-    switch (player, enemy) {
-    | (Rock, Scissors) => Victory
-    | (Rock, Paper) => Defeated
-    | (Scissors, Rock) => Defeated
-    | (Scissors, Paper) => Victory
-    | (Paper, Rock) => Victory
-    | (Paper, Scissors) => Defeated
-    | _ => Draw
-    }
-  )
+  let judge = (player, enemy) =>
+    Hand.(
+      switch (player, enemy) {
+      | (Rock, Scissors)
+      | (Scissors, Paper)
+      | (Paper, Rock) => Victory
+      | (Rock, Paper)
+      | (Scissors, Rock)
+      | (Paper, Scissors) => Defeated
+      | (Rock, Rock)
+      | (Scissors, Scissors)
+      | (Paper, Paper) => Draw
+      }
+    );
 };
 
 let reducer = (action, _state) =>
@@ -91,20 +94,20 @@ let make = (_children) => {
               (t({js|を出しました。|js}))
             </p>;
           let result =
-            switch (show_result_message(player, enemy)) {
-            | Victory => 
+            switch (Result.judge(player, enemy)) {
+            | Result.Victory => 
               <p>
                 (t({js|あなたの|js}))
                 <span className="result">(t({js|勝ち|js}))</span>
                 (t({js|です|js}))
               </p>
-            | Defeated =>
+            | Result.Defeated =>
               <p>
                 (t({js|あなたの|js}))
                 <span className="result">(t({js|負け|js}))</span>
                 (t({js|です|js}))
               </p>
-            | Draw =>
+            | Result.Draw =>
               <p>
                 <span className="result">(t({js|引き分け|js}))</span>
                 (t({js|です|js}))
