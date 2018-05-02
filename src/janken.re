@@ -1,0 +1,132 @@
+[%bs.raw {|require('./janken.css')|}];
+
+module Hand {
+  type t
+    = Rock
+    | Scissors
+    | Paper;
+
+  let to_string = hand =>
+    switch hand {
+    | Rock => {js|グー|js}
+    | Scissors => {js|チョキ|js}
+    | Paper => {js|パー|js}
+    };
+
+  exception UnexpectedNumber(int);
+
+  let random_hand = () =>
+    switch (Random.int(3)) {
+      | 0 => Rock
+      | 1 => Paper
+      | 2 => Scissors
+      | n => raise(UnexpectedNumber(n))
+      };
+};
+
+type action
+  = Reset
+  | Play(Hand.t);
+
+type state
+  = Wait
+  | Result(Hand.t, Hand.t);
+
+module Result {
+  type t
+    = Victory
+    | Defeated
+    | Draw;
+
+  let judge = (player, enemy) =>
+    Hand.(
+      switch (player, enemy) {
+      | (Rock, Scissors)
+      | (Scissors, Paper)
+      | (Paper, Rock) => Victory
+      | (Rock, Paper)
+      | (Scissors, Rock)
+      | (Paper, Scissors) => Defeated
+      | (Rock, Rock)
+      | (Scissors, Scissors)
+      | (Paper, Paper) => Draw
+      }
+    );
+};
+
+let reducer = (action, _state) =>
+  switch action {
+  | Reset => ReasonReact.Update(Wait)
+  | Play(player) => ReasonReact.Update(Result(player, Hand.random_hand()))
+  };
+
+let initialState = () => Wait;
+
+let component =
+  ReasonReact.reducerComponent("Janken");
+
+let t = str => ReasonReact.string(str);
+
+let make_button = (hand, send) =>
+  <button _type="button" onClick=(_e => send(Play(hand)))>
+    (t(Hand.to_string(hand)))
+  </button>;
+
+let make = (_children) => {
+  ...component,
+  reducer,
+  initialState,
+  render: ({state, send}) => {
+    let body =
+      switch state {
+      | Wait =>
+          <div>
+            <p>(t({js|じゃんけんゲームをします。|js}))</p>
+            <p>(t({js|好きな手を選んでください。|js}))</p>
+            (make_button(Hand.Rock, send))
+            (make_button(Hand.Scissors, send))
+            (make_button(Hand.Paper, send))
+          </div>
+      | Result(player, enemy) =>
+          let message =
+            <p>
+              (t({js|あなたは|js}))
+              <span className="hand">(t(Hand.to_string(player)))</span>
+              (t({js|を出しました。|js}))
+              (t({js|相手は|js}))
+              <span className="hand">(t(Hand.to_string(enemy)))</span>
+              (t({js|を出しました。|js}))
+            </p>;
+          let result =
+            switch (Result.judge(player, enemy)) {
+            | Result.Victory => 
+              <p>
+                (t({js|あなたの|js}))
+                <span className="result">(t({js|勝ち|js}))</span>
+                (t({js|です|js}))
+              </p>
+            | Result.Defeated =>
+              <p>
+                (t({js|あなたの|js}))
+                <span className="result">(t({js|負け|js}))</span>
+                (t({js|です|js}))
+              </p>
+            | Result.Draw =>
+              <p>
+                <span className="result">(t({js|引き分け|js}))</span>
+                (t({js|です|js}))
+              </p>
+            };
+          <div>
+            (message)
+            (result)
+            <button _type="button" onClick=(_e => send(Reset))>
+              (t({js|もう一度遊ぶ|js}))
+            </button>
+          </div>
+      };
+    <div id="janken_field">
+      (body)
+    </div>
+  }
+}
